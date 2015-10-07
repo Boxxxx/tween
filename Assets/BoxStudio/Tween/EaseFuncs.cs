@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public static class EaseFuncs {
         public enum EaseType {
             EaseInQuad,

@@ -2,7 +2,7 @@
 using UnityEngine.Assertions;
 using System;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public abstract class TweenDuration : TweenBase {
         public enum LoopType {
             Once,

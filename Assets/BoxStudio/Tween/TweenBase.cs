@@ -3,7 +3,7 @@ using UnityEngine.Assertions;
 using System;
 using System.Collections.Generic;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public abstract class TweenBase : ICloneable {
         private static ulong global_id_counter = 0;
 

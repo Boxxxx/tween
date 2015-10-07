@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public abstract class TweenFromTo<T> : TweenDuration {
         // used to set default value in inherited class.
         protected T from_;

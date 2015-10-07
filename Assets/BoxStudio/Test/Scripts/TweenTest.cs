@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using BoxStudio;
+using BoxStudio.Tween;
 
 public class TweenTest : MonoBehaviour {
     void Start() {

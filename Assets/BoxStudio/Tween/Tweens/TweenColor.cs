@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public class TweenColor : TweenFromTo<Color> {
         internal enum SourceType {
             None,

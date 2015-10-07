@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public static class Tweens {
         #region Factory functions
         public static TweenDelay Delay(float duration) {
@@ -124,18 +124,18 @@ namespace BoxStudio {
 
         public static TweenAudio Audio(GameObject owner, float from_volume, float from_pitch, float to_volumne, float to_pitch, float duration) {
             var tween = new TweenAudio(owner, duration);
-            tween.From = new KeyValuePair<float, float>(from_volume, from_pitch);
-            tween.To = new KeyValuePair<float, float>(to_volumne, to_pitch);
+            tween.From = Util.MakePair(from_volume, from_pitch);
+            tween.To = Util.MakePair(to_volumne, to_pitch);
             return tween;
         }
         public static TweenAudio AudioFrom(GameObject owner, float volume, float pitch, float duration) {
             var tween = new TweenAudio(owner, duration);
-            tween.From = new KeyValuePair<float, float>(volume, pitch);
+            tween.From = Util.MakePair(volume, pitch);
             return tween;
         }
         public static TweenAudio AudioTo(GameObject owner, float volume, float pitch, float duration) {
             var tween = new TweenAudio(owner, duration);
-            tween.To = new KeyValuePair<float, float>(volume, pitch);
+            tween.To = Util.MakePair(volume, pitch);
             return tween;
         }
         #endregion

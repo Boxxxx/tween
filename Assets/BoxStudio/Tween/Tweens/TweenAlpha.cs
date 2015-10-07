@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using System;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public class TweenAlpha : TweenFromTo<float> {
         private TweenColor.SourceType source_type_ = TweenColor.SourceType.None;
 

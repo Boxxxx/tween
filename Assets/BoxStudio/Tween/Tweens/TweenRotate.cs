@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public class TweenRotate : TweenFromTo<Vector3> {
         private bool is_local_ = true;
         public bool isLocal {

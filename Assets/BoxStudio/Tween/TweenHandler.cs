@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace BoxStudio {
+namespace BoxStudio.Tween {
     public class TweenHandler : MonoBehaviour {
         public static TweenHandler instance_;
         public static TweenHandler Instance {
