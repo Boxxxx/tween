@@ -4,79 +4,111 @@ using System;
 using System.Collections.Generic;
 
 namespace BoxStudio {
-    public abstract class TweenBase {
+    public abstract class TweenBase : ICloneable {
+        private static ulong global_id_counter = 0;
+
         protected GameObject owner_ = null;
         protected TweenHandler handler_ = null;
 
-        protected Action on_complete_;
-        protected Action<bool> on_over_;
-        protected Action on_start_;
+        public bool ignoreTimeScale { get; set; }
+        public bool includeChildren { get; set; }
+        public Action onComplete { get; set; }
+        public Action<bool> onOver { get; set; }
+        public Action onStart { get; set; }
+
+        public bool IsPaused { get; private set; }
+        public bool IsFinished { get; private set; }
+        public ulong UniqueId { get; private set; }
 
         protected List<TweenBase> next_tweens_ = new List<TweenBase>();
 
-        public TweenBase[] NextTweens {
+        public TweenBase[] nextTweens {
             get {
                 return next_tweens_.ToArray();
             }
         }
 
-        public GameObject Owner {
+        public GameObject owner {
             get { return owner_; }
+            internal set {
+                owner_ = value;
+            }
         }
 
         public TweenBase(GameObject owner) {
             owner_ = owner;
+            UniqueId = ++global_id_counter;
         }
 
-        public virtual void OnStart(TweenHandler handler) {
+        #region Internal
+        internal virtual void OnStart(TweenHandler handler) {
             Assert.IsTrue(handler != null);
             handler_ = handler;
 
             Reset();
-            if (on_start_ != null) {
-                on_start_();
+            if (onStart != null) {
+                onStart();
             }
         }
 
-        public virtual void OnFinish() {
-            if (on_complete_ != null) {
-                on_complete_();
+        internal virtual void OnFinish() {
+            if (onComplete != null) {
+                onComplete();
             }
-            if (on_over_ != null) {
-                on_over_(true);
-            }
-        }
-
-        public virtual void OnStop() {
-            if (on_over_ != null) {
-                on_over_(false);
+            if (onOver != null) {
+                onOver(true);
             }
         }
 
-        public abstract bool Update(float deltaTime, out float remainTime);
-
-        public abstract void Reset();
-
-        #region Set interface
-        public TweenBase WhenComplete(Action onComplete) {
-            on_complete_ += onComplete;
-            return this;
-        }
-        public TweenBase WhenStart(Action onStart) {
-            on_start_ += onStart;
-            return this;
+        internal virtual void OnStop() {
+            if (onOver != null) {
+                onOver(false);
+            }
         }
 
-        public TweenBase Then(TweenBase tween) {
+        internal abstract bool OnUpdate(float delta_time, out float remain_time);
+
+        internal bool Update(float delta_time, out float remain_time) {
+            if (IsPaused || IsFinished) {
+                remain_time = 0;
+                return false;
+            } else {
+                IsFinished = OnUpdate(delta_time, out remain_time);
+                return IsFinished;
+            }
+        }
+        internal abstract void Reset();
+        #endregion
+
+        #region Public Interface
+        public void Finish() {
+            Assert.IsTrue(handler_ != null);
+            handler_.Finish(this);
+        }
+        public void Stop() {
+            Assert.IsTrue(handler_ != null);
+            handler_.Stop(this);
+        }
+        public void Pause() {
+            IsPaused = true;
+        }
+        public void Resume() {
+            IsPaused = false;
+        }
+        public void AddNext(TweenBase tween) {
             next_tweens_.Add(tween);
-            return this;
         }
-        public TweenBase Begin(TweenHandler handler = null) {
+        public void Begin(TweenHandler handler = null) {
             if (handler == null) {
                 handler = TweenHandler.Instance;
             }
             handler.Begin(this);
-            return this;
+        }
+
+        public virtual object Clone() {
+            var new_tween = MemberwiseClone() as TweenBase;
+            new_tween.UniqueId = ++global_id_counter;
+            return new_tween;
         }
         #endregion
     }
