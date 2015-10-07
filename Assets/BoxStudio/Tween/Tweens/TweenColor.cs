@@ -11,9 +11,10 @@ namespace BoxStudio.Tween {
             GUITexture,
             GUIText,
             Renderer,
+            Light,
             NGUI_UILabel,
             NGUI_UISprite,
-            NGUI_UIPanel
+            NGUI_UIPanel,
         }
         private SourceType source_type_ = SourceType.None;
 
@@ -73,6 +74,9 @@ namespace BoxStudio.Tween {
             else if (owner.GetComponent<Renderer>()) {
                 return SourceType.Renderer;
             }
+            else if (owner.GetComponent<Light>()) {
+                return SourceType.Light;
+            }
 
             throw new NotImplementedException();
         }
@@ -112,6 +116,9 @@ namespace BoxStudio.Tween {
                         return;
                     }
                     break;
+                case SourceType.Light:
+                    owner.GetComponent<Light>().color = value;
+                    return;
             }
             throw new NotImplementedException();
         }
@@ -142,6 +149,8 @@ namespace BoxStudio.Tween {
                         return renderer.material.GetColor(named_color_value);
                     }
                     break;
+                case SourceType.Light:
+                    return owner.GetComponent<Light>().color;
             }
             throw new NotImplementedException();
         }
