@@ -2,7 +2,7 @@
 using UnityEngine.Assertions;
 using System;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
     public abstract class TweenDuration : TweenBase {
         public enum LoopType {
             Once,
@@ -27,7 +27,7 @@ namespace BoxStudio.Tween {
         public Action<int> onLoop { get; set; }
         // -1 means infinity
         private int repeat_cnt_ = -1;
-        public int RepeatCnt { get { return repeat_cnt_; } set { repeat_cnt_ = value; } }
+        public int repeatCnt { get { return repeat_cnt_; } set { repeat_cnt_ = value; } }
         #endregion
 
         private EaseFuncs.EaseFuncDelegate ease_func_;
@@ -41,10 +41,12 @@ namespace BoxStudio.Tween {
         }
 
         internal override void Reset() {
+            base.Reset();
+
             now_time_ = 0;
             ease_func_ = EaseFuncs.GetEaseFunc(ease_type_);
             // if the loopType is Pingpong, then repeat_cnt should multiplay 2.
-            repeat_cnt_dynamic_ = RepeatCnt * (loopType == LoopType.Pingpong ? 2 : 1);
+            repeat_cnt_dynamic_ = repeatCnt * (loopType == LoopType.Pingpong ? 2 : 1);
             is_reverse_ = false;
         }
 

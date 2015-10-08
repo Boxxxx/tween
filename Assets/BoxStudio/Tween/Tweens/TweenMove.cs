@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
     public class TweenMove : TweenFromTo<Vector3> {
         public bool isLocal { get; set; }
 

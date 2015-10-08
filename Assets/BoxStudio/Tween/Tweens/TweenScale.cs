@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
     public class TweenScale : TweenFromTo<Vector3> {
         public bool isMultiply { get; set; }
 

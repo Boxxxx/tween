@@ -1,4 +1,4 @@
-﻿namespace BoxStudio.Tween {
+﻿namespace Box.Tween {
     public class TweenDelay : TweenDuration {
         public TweenDelay(float duration) : base(null, duration) { }
 

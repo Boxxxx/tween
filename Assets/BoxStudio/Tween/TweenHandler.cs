@@ -1,8 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.Assertions;
+using System;
 using System.Collections.Generic;
 
-namespace BoxStudio.Tween {
-    public class TweenHandler : MonoBehaviour {
+namespace Box.Tween {
+    public interface ITweenContainer {
+        bool FinishTween(TweenBase tween);
+        bool CancelTween(TweenBase tween);
+        void OnTweenComplete(TweenBase tween);
+        void BeginTween(TweenBase tween);
+    }
+    public class TweenHandler : MonoBehaviour, ITweenContainer {
         public static TweenHandler instance_;
         public static TweenHandler Instance {
             get {
@@ -19,13 +27,15 @@ namespace BoxStudio.Tween {
         private Dictionary<ulong, TweenBase> tweens_id_map_ = new Dictionary<ulong, TweenBase>();
         private Dictionary<GameObject, List<TweenBase>> tweens_obj_map_ = new Dictionary<GameObject, List<TweenBase>>();
 
-        public void Begin(TweenBase tween) {
+        public void BeginTween(TweenBase tween) {
+            Assert.IsTrue(!tween.isRunning);
+
             if (tween.includeChildren) {
                 // Clone and apply this tween to all children.
                 for (var i = 0; i < tween.owner.transform.childCount; i++) {
                     var child = tween.owner.transform.GetChild(i);
                     var new_tween = CloneAndApplyTo(tween, child.gameObject);
-                    Begin(tween);
+                    BeginTween(tween);
                 }
             }
 
@@ -35,7 +45,7 @@ namespace BoxStudio.Tween {
                     tweens_obj_map_[tween.owner] = new List<TweenBase>();
                 }
                 tweens_obj_map_[tween.owner].Add(tween);
-                tweens_id_map_.Add(tween.UniqueId, tween);
+                tweens_id_map_.Add(tween.uniqueId, tween);
             }
             tween.OnStart(this);
         }
@@ -50,7 +60,7 @@ namespace BoxStudio.Tween {
         }
         public bool IsTweening(ulong unique_id) {
             var tween = FindById(unique_id);
-            return tween == null ? false : !tween.IsFinished;
+            return tween == null ? false : !tween.isFinished;
         }
         public int HowManyTween(GameObject owner) {
             if (tweens_obj_map_.ContainsKey(owner)) {
@@ -61,17 +71,23 @@ namespace BoxStudio.Tween {
             }
         }
 
-        public void Finish(TweenBase tween) {
-            Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
-            queue.Enqueue(Util.MakePair(tween, float.MaxValue));
-            UpdateQueue(queue);
+        public bool FinishTween(TweenBase tween) {
+            if (tweens_.Contains(tween) && tween.isRunning) {
+                Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
+                queue.Enqueue(Util.MakePair(tween, float.MaxValue));
+                UpdateQueue(queue, this);
+                return true;
+            } else {
+                Debug.LogWarning("[Box.Tween] tween is not running in this handler!");
+                return false;
+            }
         }
         public void FinishAll(TweenBase[] tweens) {
             Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
             foreach (var tween in tweens) {
                 queue.Enqueue(Util.MakePair(tween, float.MaxValue));
             }
-            UpdateQueue(queue);
+            UpdateQueue(queue, this);
         }
         public void Finish(ulong unique_id) {
             var tween = FindById(unique_id);
@@ -83,7 +99,7 @@ namespace BoxStudio.Tween {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
-                    Finish(tween);
+                    FinishTween(tween);
                 }
             }
         }
@@ -93,51 +109,57 @@ namespace BoxStudio.Tween {
                 foreach (var tween in tweens_obj_map_[owner]) {
                     queue.Enqueue(Util.MakePair(tween, float.MaxValue));
                 }
-                UpdateQueue(queue);
+                UpdateQueue(queue, this);
             }
         }
         public void FinishAll() {
             UpdateWithDelta(float.MaxValue, float.MaxValue);
         }
 
-        public void Stop(TweenBase tween) {
-            tweens_.Remove(tween);
-            if (tween.owner != null) {
-                tweens_obj_map_[tween.owner].Remove(tween);
+        public bool CancelTween(TweenBase tween) {
+            if (tween.isRunning && tweens_.Contains(tween)) {
+                tweens_.Remove(tween);
+                if (tween.owner != null) {
+                    tweens_obj_map_[tween.owner].Remove(tween);
+                }
+                tween.OnCancel();
+                return true;
+            } else {
+                Debug.LogWarning("[Box.Tween] tween is not running in this handler!");
+                return false;
             }
-            tween.OnStop();
         }
-        public void StopAll(TweenBase[] tweens) {
+        public void CancelAll(TweenBase[] tweens) {
             foreach (var tween in tweens) {
-                Stop(tween);
+                CancelTween(tween);
             }
         }
-        public void Stop(ulong unique_id) {
+        public void Cancel(ulong unique_id) {
             var tween = FindById(unique_id);
             if (tween != null) {
-                Stop(unique_id);
+                Cancel(unique_id);
             }
         }
-        public void StopAll(ulong[] unique_ids) {
+        public void CancelAll(ulong[] unique_ids) {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
-                    Stop(tween);
+                    CancelTween(tween);
                 }
             }
         }
-        public void StopAll(GameObject owner) {
+        public void CancelAll(GameObject owner) {
             if (tweens_obj_map_.ContainsKey(owner)) {
                 foreach (var tween in tweens_obj_map_[owner]) {
                     tweens_.Remove(tween);
-                    tween.OnStop();
+                    tween.OnCancel();
                 }
                 tweens_obj_map_[owner].Clear();
             }
         }
-        public void StopAll() {
+        public void CancelAll() {
             foreach (var tween in tweens_) {
-                tween.OnStop();
+                tween.OnCancel();
             }
             tweens_.Clear();
             tweens_obj_map_.Clear();
@@ -217,7 +239,7 @@ namespace BoxStudio.Tween {
             }
         }
 
-        private void DoComplete(TweenBase tween) {
+        public void OnTweenComplete(TweenBase tween) {
             tweens_.Remove(tween);
             if (tween.owner != null) {
                 tweens_obj_map_[tween.owner].Remove(tween);
@@ -232,9 +254,15 @@ namespace BoxStudio.Tween {
                     Util.MakePair(tween, tween.ignoreTimeScale ? unscaledDeltaTime : deltaTime));
             }
 
-            UpdateQueue(queue);
+            UpdateQueue(queue, this);
         }
-        private void UpdateQueue(Queue<KeyValuePair<TweenBase, float>> queue) {
+
+        void Update() {
+            UpdateWithDelta(Time.deltaTime, Time.unscaledDeltaTime);
+        }
+
+        internal static float UpdateQueue(Queue<KeyValuePair<TweenBase, float>> queue, ITweenContainer container) {
+            float minRemainTime = float.MaxValue;
             while (queue.Count > 0) {
                 var tweenData = queue.Dequeue();
                 var tween = tweenData.Key;
@@ -242,25 +270,25 @@ namespace BoxStudio.Tween {
 
                 float remainTime;
                 if (tween.Update(delta, out remainTime)) {
-                    DoComplete(tween);
+                    minRemainTime = Mathf.Min(minRemainTime, remainTime);
+                    container.OnTweenComplete(tween);
                     remainTime = Mathf.Clamp(remainTime, 0, 1);
                     foreach (var next in tween.nextTweens) {
-                        Begin(next);
+                        container.BeginTween(next);
                         if (remainTime > 0) {
                             queue.Enqueue(Util.MakePair(next, remainTime));
                         }
                     }
                 }
             }
+
+            return minRemainTime;
         }
-        private TTween CloneAndApplyTo<TTween>(TTween tween, GameObject other) where TTween : TweenBase {
+
+        internal static TTween CloneAndApplyTo<TTween>(TTween tween, GameObject other) where TTween : TweenBase {
             var new_tween = tween.Clone() as TTween;
             new_tween.owner = other;
             return new_tween;
-        }
-
-        void Update() {
-            UpdateWithDelta(Time.deltaTime, Time.unscaledDeltaTime);
         }
     }
 }

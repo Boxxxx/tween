@@ -3,22 +3,29 @@ using UnityEngine.Assertions;
 using System;
 using System.Collections.Generic;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
+    /// <summary>
+    /// The root class of Tween system,
+    /// NOTICE: It must be repeatable, that is, you can restart it any times.
+    /// </summary>
     public abstract class TweenBase : ICloneable {
         private static ulong global_id_counter = 0;
 
         protected GameObject owner_ = null;
-        protected TweenHandler handler_ = null;
+        protected ITweenContainer container_ = null;
 
         public bool ignoreTimeScale { get; set; }
         public bool includeChildren { get; set; }
         public Action onComplete { get; set; }
         public Action<bool> onOver { get; set; }
         public Action onStart { get; set; }
+        public TweenBase previous { get; private set; }
 
-        public bool IsPaused { get; private set; }
-        public bool IsFinished { get; private set; }
-        public ulong UniqueId { get; private set; }
+        public bool isPaused { get; private set; }
+        public bool isRunning { get; private set; }
+        public bool isFinished { get; private set; }
+        public bool hasPrevious { get { return previous != null; } }
+        public ulong uniqueId { get; private set; }
 
         protected List<TweenBase> next_tweens_ = new List<TweenBase>();
 
@@ -37,21 +44,27 @@ namespace BoxStudio.Tween {
 
         public TweenBase(GameObject owner) {
             owner_ = owner;
-            UniqueId = ++global_id_counter;
+            uniqueId = ++global_id_counter;
         }
 
         #region Internal
-        internal virtual void OnStart(TweenHandler handler) {
-            Assert.IsTrue(handler != null);
-            handler_ = handler;
+        internal virtual void OnStart(ITweenContainer container) {
+            Assert.IsTrue(container != null);
+            container_ = container;
 
             Reset();
             if (onStart != null) {
                 onStart();
             }
+            isRunning = true;
         }
 
         internal virtual void OnFinish() {
+            if (!isRunning) {
+                return;
+            }
+            isRunning = false;
+            isFinished = true;
             if (onComplete != null) {
                 onComplete();
             }
@@ -60,7 +73,11 @@ namespace BoxStudio.Tween {
             }
         }
 
-        internal virtual void OnStop() {
+        internal virtual void OnCancel() {
+            if (!isRunning) {
+                return;
+            }
+            isRunning = false;
             if (onOver != null) {
                 onOver(false);
             }
@@ -69,45 +86,49 @@ namespace BoxStudio.Tween {
         internal abstract bool OnUpdate(float delta_time, out float remain_time);
 
         internal bool Update(float delta_time, out float remain_time) {
-            if (IsPaused || IsFinished) {
+            if (isPaused || isFinished) {
                 remain_time = 0;
                 return false;
             } else {
-                IsFinished = OnUpdate(delta_time, out remain_time);
-                return IsFinished;
+                return OnUpdate(delta_time, out remain_time);
             }
         }
-        internal abstract void Reset();
+        internal virtual void Reset() {
+            isRunning = isFinished = false;
+        }
         #endregion
 
         #region Public Interface
-        public void Finish() {
-            Assert.IsTrue(handler_ != null);
-            handler_.Finish(this);
+        public bool Finish() {
+            Assert.IsTrue(container_ != null);
+            return container_.FinishTween(this);
         }
-        public void Stop() {
-            Assert.IsTrue(handler_ != null);
-            handler_.Stop(this);
+        public bool Cancel() {
+            Assert.IsTrue(container_ != null);
+            return container_.CancelTween(this);
         }
         public void Pause() {
-            IsPaused = true;
+            isPaused = true;
         }
         public void Resume() {
-            IsPaused = false;
+            isPaused = false;
         }
         public void AddNext(TweenBase tween) {
+            Assert.IsTrue(!tween.hasPrevious);
+
+            tween.previous = this;
             next_tweens_.Add(tween);
         }
         public void Begin(TweenHandler handler = null) {
             if (handler == null) {
                 handler = TweenHandler.Instance;
             }
-            handler.Begin(this);
+            handler.BeginTween(this);
         }
 
         public virtual object Clone() {
             var new_tween = MemberwiseClone() as TweenBase;
-            new_tween.UniqueId = ++global_id_counter;
+            new_tween.uniqueId = ++global_id_counter;
             return new_tween;
         }
         #endregion

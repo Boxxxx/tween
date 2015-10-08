@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
+using UnityEngine.Assertions;
 using System;
-using System.Collections.Generic;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
     public static class Tweens {
         #region Factory functions
         public static TweenDelay Delay(float duration) {
@@ -138,6 +138,34 @@ namespace BoxStudio.Tween {
             tween.To = Util.MakePair(volume, pitch);
             return tween;
         }
+
+        public static TweenWrapper Wrap(params TweenBase[] tweens) {
+            Assert.IsTrue(tweens.Length > 0);
+
+            TweenWrapper wrapper = new TweenWrapper(null);
+            foreach (var tween in tweens) {
+                wrapper.Add(tween);
+            }
+            return wrapper;
+        }
+        public static TweenWrapper Sequence(params TweenBase[] tweens) {
+            Assert.IsTrue(tweens.Length > 0);
+
+            TweenWrapper wrapper = new TweenWrapper(null);
+            TweenBase last_tween = tweens[0];
+            wrapper.Add(last_tween);
+            for (var i = 1; i < tweens.Length; i++) {
+                var tween = tweens[i];
+                if (last_tween != null) {
+                    last_tween.AddNext(tween);
+                }
+                last_tween = tween;
+            }
+            return wrapper;
+        }
+        public static TweenWrapper Parallel(params TweenBase[] tweens) {
+            return Wrap(tweens);
+        }
         #endregion
 
         #region Chaining set functions
@@ -150,7 +178,7 @@ namespace BoxStudio.Tween {
             return tween;
         }
         public static TTween SetRepeat<TTween>(this TTween tween, int repeat_cnt) where TTween : TweenDuration {
-            tween.RepeatCnt = repeat_cnt;
+            tween.repeatCnt = repeat_cnt;
             return tween;
         }
         public static TTween SetFrom<TTween, TValue>(this TTween tween, TValue value) where TTween : TweenFromTo<TValue> {
@@ -183,8 +211,10 @@ namespace BoxStudio.Tween {
             return tween;
         }
 
-        public static TTween Then<TTween>(this TTween tween, TweenBase next_tween) where TTween : TweenBase {
-            tween.AddNext(next_tween);
+        public static TTween Then<TTween>(this TTween tween, params TweenBase[] tweens) where TTween : TweenBase {
+            foreach (var next_tween in tweens) {
+                tween.AddNext(next_tween);
+            }
             return tween;
         }
         public static TTween IgnoreTimeScale<TTween>(this TTween tween, bool ignore_time_scale) where TTween : TweenBase {
@@ -210,6 +240,22 @@ namespace BoxStudio.Tween {
         }
         public static TweenAlpha SetNamedColorValue(this TweenAlpha tween, string named_color_value) {
             tween.namedColorValue = named_color_value;
+            return tween;
+        }
+        public static TweenWrapper SetRepeat(this TweenWrapper tween, int repeat_cnt) {
+            tween.repeatCnt = repeat_cnt;
+            return tween;
+        }
+        public static TweenWrapper SetTimeLimit(this TweenWrapper tween, float time_limit) {
+            tween.timeLimit = time_limit;
+            return tween;
+        }
+        public static TweenWrapper SetFinishAllWhenTimeout(this TweenWrapper tween, bool value) {
+            tween.finishAllWhenTimeout = value;
+            return tween;
+        }
+        public static TweenWrapper SetCancelWhenOneCanceled(this TweenWrapper tween, bool value) {
+            tween.cancelAllWhenOneCanceled = value;
             return tween;
         }
         #endregion

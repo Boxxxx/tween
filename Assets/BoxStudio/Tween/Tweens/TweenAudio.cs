@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace BoxStudio.Tween {
+namespace Box.Tween {
     using AudioData = KeyValuePair<float, float>;
     public class TweenAudio : TweenFromTo<AudioData> {
         public TweenAudio(GameObject owner, float duration)
