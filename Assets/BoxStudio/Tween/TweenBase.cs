@@ -14,6 +14,7 @@ namespace Box.Tween {
         protected GameObject owner_ = null;
         protected ITweenContainer container_ = null;
 
+        public string name { get; set; }
         public bool ignoreTimeScale { get; set; }
         public bool includeChildren { get; set; }
         public Action onComplete { get; set; }

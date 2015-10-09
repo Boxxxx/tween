@@ -20,6 +20,7 @@ namespace Box.Tween {
         private List<TweenBase> tweens_ = new List<TweenBase>();
         private Dictionary<ulong, TweenBase> tweens_id_map_ = new Dictionary<ulong, TweenBase>();
         private Dictionary<GameObject, List<TweenBase>> tweens_obj_map_ = new Dictionary<GameObject, List<TweenBase>>();
+        private Dictionary<string, List<TweenBase>> tweens_name_map_ = new Dictionary<string, List<TweenBase>>();
 
         public void BeginTween(TweenBase tween) {
             Assert.IsTrue(!tween.isRunning);
@@ -39,14 +40,23 @@ namespace Box.Tween {
                     tweens_obj_map_[tween.owner] = new List<TweenBase>();
                 }
                 tweens_obj_map_[tween.owner].Add(tween);
-                tweens_id_map_.Add(tween.uniqueId, tween);
             }
+            if (!string.IsNullOrEmpty(tween.name)) {
+                if (!tweens_name_map_.ContainsKey(tween.name)) {
+                    tweens_name_map_[tween.name] = new List<TweenBase>();
+                }
+                tweens_name_map_[tween.name].Add(tween);
+            }
+            tweens_id_map_.Add(tween.uniqueId, tween);
             tween.OnStart(this);
         }
         public void OnTweenComplete(TweenBase tween) {
             tweens_.Remove(tween);
             if (tween.owner != null) {
                 tweens_obj_map_[tween.owner].Remove(tween);
+            }
+            if (string.IsNullOrEmpty(tween.name)) {
+                tweens_name_map_[tween.name].Remove(tween);
             }
             tween.OnFinish();
         }
@@ -57,6 +67,23 @@ namespace Box.Tween {
             }
             else {
                 return null;
+            }
+        }
+        public TweenBase FindByName(string name) {
+            List<TweenBase> tweens;
+            if (tweens_name_map_.TryGetValue(name, out tweens)) {
+                return tweens.Count > 0 ? tweens[0] : null;
+            } else {
+                return null;
+            }
+        }
+        public TweenBase[] FindAllByName(string name) {
+            List<TweenBase> tweens;
+            if (tweens_name_map_.TryGetValue(name, out tweens)) {
+                return tweens.ToArray();
+            }
+            else {
+                return new TweenBase[] { };
             }
         }
         public bool IsTweening(ulong unique_id) {
@@ -83,7 +110,7 @@ namespace Box.Tween {
                 return false;
             }
         }
-        public void FinishAll(TweenBase[] tweens) {
+        public void FinishAll(IEnumerable<TweenBase> tweens) {
             Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
             foreach (var tween in tweens) {
                 queue.Enqueue(Util.MakePair(tween, float.MaxValue));
@@ -96,7 +123,7 @@ namespace Box.Tween {
                 Finish(unique_id);
             }
         }
-        public void FinishAll(ulong[] unique_ids) {
+        public void FinishAll(IEnumerable<ulong> unique_ids) {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
@@ -116,6 +143,11 @@ namespace Box.Tween {
         public void FinishAll() {
             UpdateWithDelta(float.MaxValue, float.MaxValue);
         }
+        public void Finish(string name) {
+            if (tweens_name_map_.ContainsKey(name)) {
+                FinishAll(tweens_name_map_[name]);
+            }
+        }
 
         public bool CancelTween(TweenBase tween) {
             if (tween.isRunning && tweens_.Contains(tween)) {
@@ -130,7 +162,7 @@ namespace Box.Tween {
                 return false;
             }
         }
-        public void CancelAll(TweenBase[] tweens) {
+        public void CancelAll(IEnumerable<TweenBase> tweens) {
             foreach (var tween in tweens) {
                 CancelTween(tween);
             }
@@ -141,7 +173,7 @@ namespace Box.Tween {
                 Cancel(unique_id);
             }
         }
-        public void CancelAll(ulong[] unique_ids) {
+        public void CancelAll(IEnumerable<ulong> unique_ids) {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
@@ -165,13 +197,18 @@ namespace Box.Tween {
             tweens_.Clear();
             tweens_obj_map_.Clear();
         }
+        public void Cancel(string name) {
+            if (tweens_name_map_.ContainsKey(name)) {
+                CancelAll(tweens_name_map_[name]);
+            }
+        }
 
         public void Pause(TweenBase tween) {
             if (tweens_.Contains(tween)) {
                 tween.Pause();
             }
         }
-        public void PauseAll(TweenBase[] tweens) {
+        public void PauseAll(IEnumerable<TweenBase> tweens) {
             foreach (var tween in tweens) {
                 tween.Pause();
             }
@@ -182,7 +219,7 @@ namespace Box.Tween {
                 Pause(unique_id);
             }
         }
-        public void PauseAll(ulong[] unique_ids) {
+        public void PauseAll(IEnumerable<ulong> unique_ids) {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
@@ -202,13 +239,18 @@ namespace Box.Tween {
                 tween.Pause();
             }
         }
+        public void Pause(string name) {
+            if (tweens_name_map_.ContainsKey(name)) {
+                PauseAll(tweens_name_map_[name]);
+            }
+        }
 
         public void Resume(TweenBase tween) {
             if (tweens_.Contains(tween)) {
                 tween.Resume();
             }
         }
-        public void ResumeAll(TweenBase[] tweens) {
+        public void ResumeAll(IEnumerable<TweenBase> tweens) {
             foreach (var tween in tweens) {
                 tween.Resume();
             }
@@ -219,7 +261,7 @@ namespace Box.Tween {
                 Resume(unique_id);
             }
         }
-        public void ResumeAll(ulong[] unique_ids) {
+        public void ResumeAll(IEnumerable<ulong> unique_ids) {
             foreach (var unique_id in unique_ids) {
                 var tween = FindById(unique_id);
                 if (tween != null) {
@@ -237,6 +279,11 @@ namespace Box.Tween {
         public void ResumeAll() {
             foreach (var tween in tweens_) {
                 tween.Resume();
+            }
+        }
+        public void Resume(string name) {
+            if (tweens_name_map_.ContainsKey(name)) {
+                ResumeAll(tweens_name_map_[name]);
             }
         }
 
