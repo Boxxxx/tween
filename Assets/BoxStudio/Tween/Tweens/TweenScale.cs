@@ -25,10 +25,5 @@ namespace Box.Tween {
         internal override Vector3 LerpValue(Vector3 from, Vector3 to, float value) {
             return Vector3.Lerp(from, to, value);
         }
-
-        public TweenScale IsMultiply(bool is_multiply) {
-            isMultiply = is_multiply;
-            return this;
-        }
     }
 }

@@ -26,22 +26,5 @@ namespace Box.Tween {
             return Util.MakePair(Mathf.Lerp(from.Key, to.Key, value),
                                  Mathf.Lerp(from.Value, to.Value, value));
         }
-
-        public TweenAudio SetFromVolume(float volume) {
-            From = Util.MakePair(volume, From.Value);
-            return this;
-        }
-        public TweenAudio SetToVolume(float volume) {
-            To = Util.MakePair(volume, To.Value);
-            return this;
-        }
-        public TweenAudio SetFromPitch(float pitch) {
-            From = Util.MakePair(From.Key, pitch);
-            return this;
-        }
-        public TweenAudio SetToPitch(float pitch) {
-            To = Util.MakePair(To.Value, pitch);
-            return this;
-        }
     }
 }

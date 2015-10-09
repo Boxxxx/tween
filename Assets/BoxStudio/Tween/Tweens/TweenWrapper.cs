@@ -44,7 +44,7 @@ namespace Box.Tween {
             if (running_tweens_.Contains(tween) && tween.isRunning) {
                 Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
                 queue.Enqueue(Util.MakePair(tween, float.MaxValue));
-                TweenHandler.UpdateQueue(queue, this);
+                TweenHelper.UpdateQueue(queue, this);
                 return true;
             } else {
                 return false;
@@ -75,7 +75,7 @@ namespace Box.Tween {
                 // Clone and apply this tween to all children.
                 for (var i = 0; i < tween.owner.transform.childCount; i++) {
                     var child = tween.owner.transform.GetChild(i);
-                    var new_tween = TweenHandler.CloneAndApplyTo(tween, child.gameObject);
+                    var new_tween = TweenHelper.CloneAndApplyTo(tween, child.gameObject);
                     BeginTween(tween);
                 }
             }
@@ -121,7 +121,7 @@ namespace Box.Tween {
                     Util.MakePair(tween, delta_time));
             }
 
-            float minRemainTime = TweenHandler.UpdateQueue(queue, this);
+            float minRemainTime = TweenHelper.UpdateQueue(queue, this);
             if (running_tweens_.Count == 0) {
                 remain_time = minRemainTime;
                 return true;

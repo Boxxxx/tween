@@ -28,8 +28,8 @@ public class TweenTest : MonoBehaviour {
                         .SetLoopType(TweenDuration.LoopType.Pingpong)
                         .SetRepeat(1))
         )
-        .WhenStart(() => Debug.Log("Start!"))
-        .WhenComplete(() => Debug.Log("Finished!"))
+        .OnStart(() => Debug.Log("Start!"))
+        .OnComplete(() => Debug.Log("Finished!"))
         .Begin();
     }
 }

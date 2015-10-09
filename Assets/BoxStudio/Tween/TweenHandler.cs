@@ -4,12 +4,6 @@ using System;
 using System.Collections.Generic;
 
 namespace Box.Tween {
-    public interface ITweenContainer {
-        bool FinishTween(TweenBase tween);
-        bool CancelTween(TweenBase tween);
-        void OnTweenComplete(TweenBase tween);
-        void BeginTween(TweenBase tween);
-    }
     public class TweenHandler : MonoBehaviour, ITweenContainer {
         public static TweenHandler instance_;
         public static TweenHandler Instance {
@@ -34,7 +28,7 @@ namespace Box.Tween {
                 // Clone and apply this tween to all children.
                 for (var i = 0; i < tween.owner.transform.childCount; i++) {
                     var child = tween.owner.transform.GetChild(i);
-                    var new_tween = CloneAndApplyTo(tween, child.gameObject);
+                    var new_tween = TweenHelper.CloneAndApplyTo(tween, child.gameObject);
                     BeginTween(tween);
                 }
             }
@@ -48,6 +42,13 @@ namespace Box.Tween {
                 tweens_id_map_.Add(tween.uniqueId, tween);
             }
             tween.OnStart(this);
+        }
+        public void OnTweenComplete(TweenBase tween) {
+            tweens_.Remove(tween);
+            if (tween.owner != null) {
+                tweens_obj_map_[tween.owner].Remove(tween);
+            }
+            tween.OnFinish();
         }
 
         public TweenBase FindById(ulong unique_id) {
@@ -75,7 +76,7 @@ namespace Box.Tween {
             if (tweens_.Contains(tween) && tween.isRunning) {
                 Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
                 queue.Enqueue(Util.MakePair(tween, float.MaxValue));
-                UpdateQueue(queue, this);
+                TweenHelper.UpdateQueue(queue, this);
                 return true;
             } else {
                 Debug.LogWarning("[Box.Tween] tween is not running in this handler!");
@@ -87,7 +88,7 @@ namespace Box.Tween {
             foreach (var tween in tweens) {
                 queue.Enqueue(Util.MakePair(tween, float.MaxValue));
             }
-            UpdateQueue(queue, this);
+            TweenHelper.UpdateQueue(queue, this);
         }
         public void Finish(ulong unique_id) {
             var tween = FindById(unique_id);
@@ -109,7 +110,7 @@ namespace Box.Tween {
                 foreach (var tween in tweens_obj_map_[owner]) {
                     queue.Enqueue(Util.MakePair(tween, float.MaxValue));
                 }
-                UpdateQueue(queue, this);
+                TweenHelper.UpdateQueue(queue, this);
             }
         }
         public void FinishAll() {
@@ -239,13 +240,6 @@ namespace Box.Tween {
             }
         }
 
-        public void OnTweenComplete(TweenBase tween) {
-            tweens_.Remove(tween);
-            if (tween.owner != null) {
-                tweens_obj_map_[tween.owner].Remove(tween);
-            }
-            tween.OnFinish();
-        }
         private void UpdateWithDelta(float deltaTime, float unscaledDeltaTime) {
             Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
 
@@ -254,41 +248,11 @@ namespace Box.Tween {
                     Util.MakePair(tween, tween.ignoreTimeScale ? unscaledDeltaTime : deltaTime));
             }
 
-            UpdateQueue(queue, this);
+            TweenHelper.UpdateQueue(queue, this);
         }
 
         void Update() {
             UpdateWithDelta(Time.deltaTime, Time.unscaledDeltaTime);
-        }
-
-        internal static float UpdateQueue(Queue<KeyValuePair<TweenBase, float>> queue, ITweenContainer container) {
-            float minRemainTime = float.MaxValue;
-            while (queue.Count > 0) {
-                var tweenData = queue.Dequeue();
-                var tween = tweenData.Key;
-                var delta = tweenData.Value;
-
-                float remainTime;
-                if (tween.Update(delta, out remainTime)) {
-                    minRemainTime = Mathf.Min(minRemainTime, remainTime);
-                    container.OnTweenComplete(tween);
-                    remainTime = Mathf.Clamp(remainTime, 0, 1);
-                    foreach (var next in tween.nextTweens) {
-                        container.BeginTween(next);
-                        if (remainTime > 0) {
-                            queue.Enqueue(Util.MakePair(next, remainTime));
-                        }
-                    }
-                }
-            }
-
-            return minRemainTime;
-        }
-
-        internal static TTween CloneAndApplyTo<TTween>(TTween tween, GameObject other) where TTween : TweenBase {
-            var new_tween = tween.Clone() as TTween;
-            new_tween.owner = other;
-            return new_tween;
         }
     }
 }

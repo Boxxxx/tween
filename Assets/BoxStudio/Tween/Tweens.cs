@@ -148,12 +148,10 @@ namespace Box.Tween {
             }
             return wrapper;
         }
-        public static TweenWrapper Sequence(params TweenBase[] tweens) {
+        public static TweenBase Link(params TweenBase[] tweens) {
             Assert.IsTrue(tweens.Length > 0);
 
-            TweenWrapper wrapper = new TweenWrapper(null);
             TweenBase last_tween = tweens[0];
-            wrapper.Add(last_tween);
             for (var i = 1; i < tweens.Length; i++) {
                 var tween = tweens[i];
                 if (last_tween != null) {
@@ -161,6 +159,16 @@ namespace Box.Tween {
                 }
                 last_tween = tween;
             }
+            return last_tween;
+        }
+        public static TweenWrapper Sequence(params TweenBase[] tweens) {
+            Assert.IsTrue(tweens.Length > 0);
+
+            TweenWrapper wrapper = new TweenWrapper(null);
+            TweenBase first_tween = tweens[0];
+            wrapper.Add(first_tween);
+            Link(tweens);
+
             return wrapper;
         }
         public static TweenWrapper Parallel(params TweenBase[] tweens) {
@@ -190,23 +198,23 @@ namespace Box.Tween {
             return tween;
         }
 
-        public static TTween WhenComplete<TTween>(this TTween tween, Action onComplete) where TTween : TweenBase {
+        public static TTween OnComplete<TTween>(this TTween tween, Action onComplete) where TTween : TweenBase {
             tween.onComplete += onComplete;
             return tween;
         }
-        public static TTween WhenStart<TTween>(this TTween tween, Action onStart) where TTween : TweenBase {
+        public static TTween OnStart<TTween>(this TTween tween, Action onStart) where TTween : TweenBase {
             tween.onStart += onStart;
             return tween;
         }
-        public static TTween WhenUpdate<TTween>(this TTween tween, Action<float> on_update) where TTween : TweenDuration {
+        public static TTween OnUpdate<TTween>(this TTween tween, Action<float> on_update) where TTween : TweenDuration {
             tween.onUpdate += on_update;
             return tween;
         }
-        public static TTween WhenUpdateValue<TTween>(this TTween tween, Action<float> on_update_value) where TTween : TweenDuration {
+        public static TTween OnUpdateValue<TTween>(this TTween tween, Action<float> on_update_value) where TTween : TweenDuration {
             tween.onUpdateValue += on_update_value;
             return tween;
         }
-        public static TTween WhenLoop<TTween>(this TTween tween, Action<int> on_loop) where TTween : TweenDuration {
+        public static TTween OnLoop<TTween>(this TTween tween, Action<int> on_loop) where TTween : TweenDuration {
             tween.onLoop += on_loop;
             return tween;
         }
@@ -256,6 +264,26 @@ namespace Box.Tween {
         }
         public static TweenWrapper SetCancelWhenOneCanceled(this TweenWrapper tween, bool value) {
             tween.cancelAllWhenOneCanceled = value;
+            return tween;
+        }
+        public static TweenAudio SetFromVolume(this TweenAudio tween, float volume) {
+            tween.From = Util.MakePair(volume, tween.From.Value);
+            return tween;
+        }
+        public static TweenAudio SetToVolume(this TweenAudio tween, float volume) {
+            tween.To = Util.MakePair(volume, tween.To.Value);
+            return tween;
+        }
+        public static TweenAudio SetFromPitch(this TweenAudio tween, float pitch) {
+            tween.From = Util.MakePair(tween.From.Key, pitch);
+            return tween;
+        }
+        public static TweenAudio SetToPitch(this TweenAudio tween, float pitch) {
+            tween.To = Util.MakePair(tween.To.Value, pitch);
+            return tween;
+        }
+        public static TweenScale IsMultiply(this TweenScale tween, bool is_multiply) {
+            tween.isMultiply = is_multiply;
             return tween;
         }
         #endregion

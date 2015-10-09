@@ -120,6 +120,7 @@ namespace Box.Tween {
             next_tweens_.Add(tween);
         }
         public void Begin(TweenHandler handler = null) {
+            Assert.IsTrue(!isRunning);
             if (handler == null) {
                 handler = TweenHandler.Instance;
             }
