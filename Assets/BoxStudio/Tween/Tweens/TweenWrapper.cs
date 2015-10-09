@@ -17,7 +17,7 @@ namespace Box.Tween {
 
         public int repeatCnt {
             get { return repeat_cnt_; }
-            set { repeat_cnt_ = value; }
+            set { repeat_cnt_ = Mathf.Max(1, value); }
         }
         public float timeLimit {
             get { return time_limit_; }
@@ -113,18 +113,40 @@ namespace Box.Tween {
             running_tweens_.Clear();
             base.OnCancel();
         }
+        private void Restart() {
+            running_tweens_.Clear();
+            foreach (var tween in tweens_) {
+                Assert.IsTrue(!tween.hasPrevious);
+
+                tween.Reset();
+                running_tweens_.Add(tween);
+            }
+            foreach (var tween in running_tweens_) {
+                tween.OnStart(this);
+            }
+        }
 
         internal override bool OnUpdate(float delta_time, out float remain_time) {
-            Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
-            foreach (var tween in running_tweens_) {
-                queue.Enqueue(
-                    Util.MakePair(tween, delta_time));
-            }
+            while (true) {
+                Queue<KeyValuePair<TweenBase, float>> queue = new Queue<KeyValuePair<TweenBase, float>>();
+                foreach (var tween in running_tweens_) {
+                    queue.Enqueue(
+                        Util.MakePair(tween, delta_time));
+                }
 
-            float minRemainTime = TweenHelper.UpdateQueue(queue, this);
-            if (running_tweens_.Count == 0) {
-                remain_time = minRemainTime;
-                return true;
+                float minRemainTime = TweenHelper.UpdateQueue(queue, this);
+                if (running_tweens_.Count == 0) {
+                    if ((--repeat_cnt_dynamic_) == 0) {
+                        remain_time = minRemainTime;
+                        return true;
+                    }
+                    else {
+                        delta_time = minRemainTime;
+                        Restart();
+                    }
+                } else {
+                    break;
+                }
             }
 
             remain_time = 0;
