@@ -9,7 +9,7 @@ namespace Box.Tween {
             Loop,
             Pingpong
         }
-        #region Tween Data (should not be modified at runtime)
+        #region Tween Data (NOT MODIFY AT RUNTIME)
         protected EaseFuncs.EaseType ease_type_ = EaseFuncs.EaseType.Linear;
         public EaseFuncs.EaseType easeType {
             get { return ease_type_; }
@@ -26,14 +26,16 @@ namespace Box.Tween {
         public Action<float> onUpdateValue { get; set; }
         public Action<int> onLoop { get; set; }
         // -1 means infinity
-        private int repeat_cnt_ = -1;
+        private int repeat_cnt_ = 1;
         public int repeatCnt { get { return repeat_cnt_; } set { repeat_cnt_ = value; } }
         #endregion
 
+        #region Dynamic Variables
         private EaseFuncs.EaseFuncDelegate ease_func_;
         private float now_time_ = 0;
         private int repeat_cnt_dynamic_ = 0;
         private bool is_reverse_ = false;
+        #endregion
 
         public TweenDuration(GameObject owner, float duration) : base(owner) {
             Assert.IsTrue(duration > 0);

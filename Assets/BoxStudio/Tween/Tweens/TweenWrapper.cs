@@ -4,16 +4,11 @@ using System.Collections.Generic;
 
 namespace Box.Tween {
     public class TweenWrapper : TweenBase, ITweenContainer {
-        // configure variables section
+        #region Tween Data (NOT MODIFY AT RUNTIME)
         private int repeat_cnt_ = 1;
         private float time_limit_ = 0;
         private bool finish_all_when_timeout_ = true;
         private List<TweenBase> tweens_ = new List<TweenBase>();
-
-        // dynamic variables section
-        private int repeat_cnt_dynamic_ = 0;
-        private float now_time_ = 0;
-        private List<TweenBase> running_tweens_ = new List<TweenBase>();
 
         public int repeatCnt {
             get { return repeat_cnt_; }
@@ -30,6 +25,13 @@ namespace Box.Tween {
         public bool cancelAllWhenOneCanceled {
             get; set;
         }
+        #endregion
+
+        #region Dynamic Variables
+        private int repeat_cnt_dynamic_ = 0;
+        private float now_time_ = 0;
+        private List<TweenBase> running_tweens_ = new List<TweenBase>();
+        #endregion
 
         public TweenWrapper(GameObject owner) : base(owner) { }
 

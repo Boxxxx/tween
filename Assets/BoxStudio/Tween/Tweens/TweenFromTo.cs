@@ -3,6 +3,7 @@ using UnityEngine.Assertions;
 
 namespace Box.Tween {
     public abstract class TweenFromTo<T> : TweenDuration {
+        #region Tween Data (NOT MODIFY AT RUNTIME)
         // used to set default value in inherited class.
         protected T from_;
         protected T to_;
@@ -28,6 +29,7 @@ namespace Box.Tween {
                 to_ = value;
             }
         }
+        #endregion
 
         public TweenFromTo(GameObject owner, float duration) : base(owner, duration) { }
         public TweenFromTo(GameObject owner, float duration, T from, T to) : base(owner, duration) {

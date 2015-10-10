@@ -189,6 +189,10 @@ namespace Box.Tween {
             tween.repeatCnt = repeat_cnt;
             return tween;
         }
+        public static TTween SetInfinity<TTween>(this TTween tween, int repeat_cnt) where TTween : TweenDuration {
+            tween.repeatCnt = -1;
+            return tween;
+        }
         public static TTween SetFrom<TTween, TValue>(this TTween tween, TValue value) where TTween : TweenFromTo<TValue> {
             tween.From = value;
             return tween;
