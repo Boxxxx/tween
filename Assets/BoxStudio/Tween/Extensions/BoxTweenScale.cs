@@ -2,29 +2,27 @@
 using UnityEngine.Assertions;
 
 namespace Box.Tween {
-    public class BoxTweenFade : TweenBaseMonoBehaviour {
+    public class BoxTweenScale : TweenBaseMonoBehaviour {
         [Header("--- Tween Data ---")]
         public float time = 1;
 
         [Space(10)]
         public bool currentAsFrom = false;
-        [Range(0.0f, 1.0f)]
-        public float from = 1;
+        public Vector3 from = new Vector3(1, 1, 1);
 
         [Space(10)]
         public bool currentAsTo = false;
-        [Range(0.0f, 1.0f)]
-        public float to = 0;
+        public Vector3 to = new Vector3(1, 1, 1);
 
         [Space(10)]
         public EaseFuncs.EaseType easeType = EaseFuncs.EaseType.Linear;
         public TweenDuration.LoopType loopType = TweenDuration.LoopType.Once;
         public int repeatCnt = 1;
-        
+
         protected override TweenBase Build() {
             Assert.IsFalse(currentAsFrom && currentAsTo);
 
-            var tween = Tweens.Fade(gameObject, time)
+            var tween = Tweens.Scale(gameObject, time)
                          .SetEaseType(easeType)
                          .SetLoopType(loopType)
                          .SetRepeat(repeatCnt);

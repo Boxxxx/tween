@@ -5,7 +5,10 @@ namespace Box.Tween {
     public abstract class TweenBaseMonoBehaviour : MonoBehaviour {
         private TweenBase _tween = null;
 
+        [Header("--- Base Conf ---")]
         public bool autoStart = true;
+        public string onStart;
+        public string onComplete;
         public TweenBaseMonoBehaviour[] nexts = { };
 
         public bool IsRunning {
@@ -22,7 +25,8 @@ namespace Box.Tween {
         }
 
         protected abstract TweenBase Build();
-        public bool Begin(TweenHandler handler = null) {
+        protected virtual void BeforeStart() { }
+        public virtual bool Begin(TweenHandler handler = null) {
             if (_tween != null && !IsRunning) {
                 _tween.Begin(handler);
                 return true;
@@ -34,6 +38,12 @@ namespace Box.Tween {
         #region Unity Callback
         void Awake() {
             _tween = Build();
+            if (!string.IsNullOrEmpty(onComplete)) {
+                _tween.OnComplete(() => SendMessage(onComplete));
+            }
+            if (!string.IsNullOrEmpty(onStart)) {
+                _tween.OnComplete(() => SendMessage(onStart));
+            }
         }
 
         void Start() {
@@ -42,13 +52,15 @@ namespace Box.Tween {
                     _tween.AddNext(next.tween);
                 }
             }
+            BeforeStart();
+
             if (autoStart && _tween != null) {
                 _tween.Begin();
             }
         }
 
         void OnDestroy() {
-            if (_tween != null) {
+            if (_tween != null && _tween.isRunning) {
                 _tween.Cancel();
             }
         }

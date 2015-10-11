@@ -14,6 +14,11 @@ namespace Box.Tween {
             tween.isLocal = is_local;
             return tween;
         }
+        public static TweenMove Move(GameObject owner,float duration, bool is_local = false) {
+            var tween = new TweenMove(owner, duration);
+            tween.isLocal = is_local;
+            return tween;
+        }
         public static TweenMove MoveFrom(GameObject owner, Vector3 from, float duration, bool is_local = false) {
             var tween = new TweenMove(owner, duration);
             tween.From = from;
@@ -38,6 +43,11 @@ namespace Box.Tween {
             tween.isLocal = is_local;
             return tween;
         }
+        public static TweenRotate Rotate(GameObject owner, float duration, bool is_local = false) {
+            var tween = new TweenRotate(owner, duration);
+            tween.isLocal = is_local;
+            return tween;
+        }
         public static TweenRotate RotateFrom(GameObject owner, Vector3 from, float duration, bool is_local = false) {
             var tween = new TweenRotate(owner, duration);
             tween.From = from;
@@ -59,6 +69,10 @@ namespace Box.Tween {
 
         public static TweenScale Scale(GameObject owner, Vector3 from, Vector3 to, float duration) {
             var tween = new TweenScale(owner, duration, from, to);
+            return tween;
+        }
+        public static TweenScale Scale(GameObject owner, float duration) {
+            var tween = new TweenScale(owner, duration);
             return tween;
         }
         public static TweenScale ScaleFrom(GameObject owner, Vector3 from, float duration) {
@@ -86,6 +100,10 @@ namespace Box.Tween {
             var tween = new TweenColor(owner, duration, from, to);
             return tween;
         }
+        public static TweenColor Color(GameObject owner, float duration) {
+            var tween = new TweenColor(owner, duration);
+            return tween;
+        }
         public static TweenColor ColorFrom(GameObject owner, Color from, float duration) {
             var tween = new TweenColor(owner, duration);
             tween.From = from;
@@ -104,6 +122,10 @@ namespace Box.Tween {
 
         public static TweenAlpha Fade(GameObject owner, float from, float to, float duration) {
             var tween = new TweenAlpha(owner, duration, from, to);
+            return tween;
+        }
+        public static TweenAlpha Fade(GameObject owner, float duration) {
+            var tween = new TweenAlpha(owner, duration);
             return tween;
         }
         public static TweenAlpha FadeFrom(GameObject owner, float from, float duration) {
@@ -126,6 +148,10 @@ namespace Box.Tween {
             var tween = new TweenAudio(owner, duration);
             tween.From = Util.MakePair(from_volume, from_pitch);
             tween.To = Util.MakePair(to_volumne, to_pitch);
+            return tween;
+        }
+        public static TweenAudio Audio(GameObject owner, float duration) {
+            var tween = new TweenAudio(owner, duration);
             return tween;
         }
         public static TweenAudio AudioFrom(GameObject owner, float volume, float pitch, float duration) {

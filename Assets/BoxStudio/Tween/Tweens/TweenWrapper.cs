@@ -78,7 +78,7 @@ namespace Box.Tween {
                 for (var i = 0; i < tween.owner.transform.childCount; i++) {
                     var child = tween.owner.transform.GetChild(i);
                     var new_tween = TweenHelper.CloneAndApplyTo(tween, child.gameObject);
-                    BeginTween(tween);
+                    BeginTween(new_tween);
                 }
             }
 
